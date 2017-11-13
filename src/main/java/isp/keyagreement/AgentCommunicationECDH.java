@@ -2,18 +2,18 @@ package isp.keyagreement;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
-import javax.crypto.interfaces.DHPublicKey;
-import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.ECParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class AgentCommunicationDH {
+public class AgentCommunicationECDH {
     public static void main(String[] args) throws Exception {
 
         final BlockingQueue<byte[]> alice2bob = new LinkedBlockingQueue<>();
@@ -22,22 +22,22 @@ public class AgentCommunicationDH {
         final Agent alice = new Agent("alice", alice2bob, bob2alice, null, "AES/GCM/NoPadding") {
             @Override
             public void execute() throws Exception {
-                final KeyPairGenerator kpg = KeyPairGenerator.getInstance("DH");
-                kpg.initialize(2048);
+                final KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC");
+                kpg.initialize(256);
 
                 // Generate key pair
                 final KeyPair keyPair = kpg.generateKeyPair();
 
                 // send "PK" to bob ("PK": A = g^a, "SK": a)
                 outgoing.put(keyPair.getPublic().getEncoded());
-                print("My contribution to DH: %s", hex(keyPair.getPublic().getEncoded()));
+                print("My contribution to ECDH: %s", hex(keyPair.getPublic().getEncoded()));
 
                 // get PK from bob
                 final X509EncodedKeySpec keySpec = new X509EncodedKeySpec(incoming.take());
-                final DHPublicKey bobPK = (DHPublicKey) KeyFactory.getInstance("DH").generatePublic(keySpec);
+                final ECPublicKey bobPK = (ECPublicKey) KeyFactory.getInstance("EC").generatePublic(keySpec);
 
                 // Run the agreement protocol
-                final KeyAgreement dh = KeyAgreement.getInstance("DH");
+                final KeyAgreement dh = KeyAgreement.getInstance("ECDH");
                 dh.init(keyPair.getPrivate());
                 dh.doPhase(bobPK, true);
 
@@ -67,18 +67,18 @@ public class AgentCommunicationDH {
             public void execute() throws Exception {
                 // get PK from alice
                 final X509EncodedKeySpec keySpec = new X509EncodedKeySpec(incoming.take());
-                final DHPublicKey alicePK = (DHPublicKey) KeyFactory.getInstance("DH").generatePublic(keySpec);
+                final ECPublicKey alicePK = (ECPublicKey) KeyFactory.getInstance("EC").generatePublic(keySpec);
 
-                final DHParameterSpec dhParamSpec = alicePK.getParams();
+                final ECParameterSpec dhParamSpec = alicePK.getParams();
 
                 // create your own DH key pair
-                final KeyPairGenerator kpg = KeyPairGenerator.getInstance("DH");
+                final KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC");
                 kpg.initialize(dhParamSpec);
                 final KeyPair keyPair = kpg.generateKeyPair();
                 outgoing.put(keyPair.getPublic().getEncoded());
-                print("My contribution to DH: %s", hex(keyPair.getPublic().getEncoded()));
+                print("My contribution to ECDH: %s", hex(keyPair.getPublic().getEncoded()));
 
-                final KeyAgreement dh = KeyAgreement.getInstance("DH");
+                final KeyAgreement dh = KeyAgreement.getInstance("ECDH");
                 dh.init(keyPair.getPrivate());
                 dh.doPhase(alicePK, true);
 
