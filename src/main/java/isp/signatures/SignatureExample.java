@@ -1,6 +1,8 @@
 package isp.signatures;
 
-import javax.xml.bind.DatatypeConverter;
+import fri.isp.Agent;
+
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.Signature;
@@ -42,9 +44,9 @@ public class SignatureExample {
         signer.initSign(key.getPrivate());
 
         // Finally, we load the document into the signature object and sign it
-        signer.update(document.getBytes("UTF-8"));
+        signer.update(document.getBytes(StandardCharsets.UTF_8));
         final byte[] signature = signer.sign();
-        System.out.println("Signature: " + DatatypeConverter.printHexBinary(signature));
+        System.out.println("Signature: " + Agent.hex(signature));
 
         /*
          * To verify the signature, we create another signature object
@@ -59,7 +61,7 @@ public class SignatureExample {
         verifier.initVerify(key.getPublic());
 
         // Check whether the signature is valid
-        verifier.update(document.getBytes("UTF-8"));
+        verifier.update(document.getBytes(StandardCharsets.UTF_8));
 
         if (verifier.verify(signature))
             System.out.println("Valid signature.");

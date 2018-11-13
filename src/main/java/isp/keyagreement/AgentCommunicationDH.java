@@ -1,27 +1,28 @@
 package isp.keyagreement;
 
+import fri.isp.Agent;
+import fri.isp.Environment;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class AgentCommunicationDH {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
-        final BlockingQueue<byte[]> alice2bob = new LinkedBlockingQueue<>();
-        final BlockingQueue<byte[]> bob2alice = new LinkedBlockingQueue<>();
+        final Environment env = new Environment();
 
-        final Agent alice = new Agent("alice", alice2bob, bob2alice, null, "AES/GCM/NoPadding") {
+        env.add(new Agent("alice") {
             @Override
-            public void execute() throws Exception {
+            public void task() throws Exception {
                 final KeyPairGenerator kpg = KeyPairGenerator.getInstance("DH");
                 kpg.initialize(2048);
 
@@ -29,11 +30,11 @@ public class AgentCommunicationDH {
                 final KeyPair keyPair = kpg.generateKeyPair();
 
                 // send "PK" to bob ("PK": A = g^a, "SK": a)
-                outgoing.put(keyPair.getPublic().getEncoded());
+                send("bob", keyPair.getPublic().getEncoded());
                 print("My contribution to DH: %s", hex(keyPair.getPublic().getEncoded()));
 
                 // get PK from bob
-                final X509EncodedKeySpec keySpec = new X509EncodedKeySpec(incoming.take());
+                final X509EncodedKeySpec keySpec = new X509EncodedKeySpec(receive("bob"));
                 final DHPublicKey bobPK = (DHPublicKey) KeyFactory.getInstance("DH").generatePublic(keySpec);
 
                 // Run the agreement protocol
@@ -46,27 +47,29 @@ public class AgentCommunicationDH {
                 print("Shared secret: %s", hex(sharedSecret));
 
                 // By default the shared secret will be 32 bytes long,
-                // Uur cipher requires keys of length 16 bytes
+                // but our cipher requires keys of length 16 bytes
+                // IMPORTANT: It is better not to create the key directly from the shared secret,
+                // but derive it using key derivation function (will be covered later)
                 final SecretKeySpec aesKey = new SecretKeySpec(sharedSecret, 0, 16, "AES");
 
-                final Cipher aes = Cipher.getInstance(cipher);
+                final Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
                 aes.init(Cipher.ENCRYPT_MODE, aesKey);
 
-                final byte[] ct = aes.doFinal("Hey Bob!".getBytes("UTF-8"));
+                final byte[] ct = aes.doFinal("Hey Bob!".getBytes(StandardCharsets.UTF_8));
                 final byte[] iv = aes.getIV();
 
-                outgoing.put(iv);
-                outgoing.put(ct);
+                send("bob", iv);
+                send("bob", ct);
 
                 print("I'm, done!");
             }
-        };
+        });
 
-        final Agent bob = new Agent("bob", bob2alice, alice2bob, null, "AES/GCM/NoPadding") {
+        env.add(new Agent("bob") {
             @Override
-            public void execute() throws Exception {
+            public void task() throws Exception {
                 // get PK from alice
-                final X509EncodedKeySpec keySpec = new X509EncodedKeySpec(incoming.take());
+                final X509EncodedKeySpec keySpec = new X509EncodedKeySpec(receive("alice"));
                 final DHPublicKey alicePK = (DHPublicKey) KeyFactory.getInstance("DH").generatePublic(keySpec);
 
                 final DHParameterSpec dhParamSpec = alicePK.getParams();
@@ -75,7 +78,7 @@ public class AgentCommunicationDH {
                 final KeyPairGenerator kpg = KeyPairGenerator.getInstance("DH");
                 kpg.initialize(dhParamSpec);
                 final KeyPair keyPair = kpg.generateKeyPair();
-                outgoing.put(keyPair.getPublic().getEncoded());
+                send("alice", keyPair.getPublic().getEncoded());
                 print("My contribution to DH: %s", hex(keyPair.getPublic().getEncoded()));
 
                 final KeyAgreement dh = KeyAgreement.getInstance("DH");
@@ -86,17 +89,17 @@ public class AgentCommunicationDH {
                 print("Shared secret: %s", hex(sharedSecret));
                 final SecretKeySpec aesKey = new SecretKeySpec(sharedSecret, 0, 16, "AES");
 
-                final Cipher aes = Cipher.getInstance(cipher);
-                final byte[] iv = incoming.take();
-                final byte[] ct = incoming.take();
+                final Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
+                final byte[] iv = receive("alice");
+                final byte[] ct = receive("alice");
                 aes.init(Cipher.DECRYPT_MODE, aesKey, new GCMParameterSpec(128, iv));
                 final byte[] pt = aes.doFinal(ct);
 
-                print("I got: %s", new String(pt, "UTF-8"));
+                print("I got: %s", new String(pt, StandardCharsets.UTF_8));
             }
-        };
+        });
 
-        alice.start();
-        bob.start();
+        env.connect("alice", "bob");
+        env.start();
     }
 }
