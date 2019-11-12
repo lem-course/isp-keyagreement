@@ -5,8 +5,6 @@ import fri.isp.Environment;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
-import javax.crypto.interfaces.DHPublicKey;
-import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -49,7 +47,7 @@ public class AgentCommunicationECDH {
                 print("Shared secret: %s", hex(sharedSecret));
 
                 // By default the shared secret will be 32 bytes long,
-                // Uur cipher requires keys of length 16 bytes
+                // our cipher requires keys of length 16 bytes
                 final SecretKeySpec aesKey = new SecretKeySpec(sharedSecret, 0, 16, "AES");
 
                 final Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
