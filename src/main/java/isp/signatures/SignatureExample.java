@@ -13,12 +13,12 @@ public class SignatureExample {
         // https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Signature
         final String signingAlgorithm =
                 "SHA256withRSA";
-        // "SHA256withDSA";
-        //"SHA256withECDSA";
+//         "SHA256withDSA";
+//        "SHA256withECDSA";
         final String keyAlgorithm =
                 "RSA";
-        // "RSA";
-        // "EC";
+//         "DSA";
+//         "EC";
 
 
         // The message we want to sign
