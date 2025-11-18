@@ -4,9 +4,9 @@ import fri.isp.Agent;
 import fri.isp.Environment;
 
 /*
- * Implement a key exchange between Alice and Bob using public-key encryption.
- * Once the shared secret is established, send an encrypted message from Alice to Bob using
- * AES in GCM.
+ * Implement an unauthenticated (as presented in the slides) key exchange between Alice and Bob
+ * using public-key encryption. Once the shared secret is established, send an encrypted message
+ * from Alice to Bob using AES in GCM.
  */
 public class A1AgentCommunicationKeyExchange {
     public static void main(String[] args) {
