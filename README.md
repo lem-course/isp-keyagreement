@@ -7,7 +7,7 @@ instructions in each exercise as well as the guidance below.
 
 ## Setup and running
 
-Install JDK 17 or later and Maven 3. Check `java -version` and `mvn -version`;
+Install JDK 21 and Maven 3. Check `java -version` and `mvn -version`;
 Maven must use the intended JDK. The first build needs network access to
 download Maven dependencies and the communication library from JitPack.
 
@@ -82,9 +82,9 @@ assumption; they do not encrypt the messages or prevent replay by themselves.
 
 ## References
 
-- [Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html)
-- [GCMParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html)
-- [KeyPairGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyPairGenerator.html)
-- [Signature](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html)
-- [Java standard algorithm names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html)
+- [Cipher](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html)
+- [GCMParameterSpec](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html)
+- [KeyPairGenerator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyPairGenerator.html)
+- [Signature](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Signature.html)
+- [Java standard algorithm names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html)
 - [Communication library source](https://github.com/lem-course/isp-communication-model)
