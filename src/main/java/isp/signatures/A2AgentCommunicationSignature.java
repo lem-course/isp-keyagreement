@@ -4,8 +4,10 @@ import fri.isp.Agent;
 import fri.isp.Environment;
 
 /*
- * Assuming Alice and Bob know each other's public key, provide integrity and non-repudiation
- * to exchanged messages with ECDSA. Then exchange ten signed messages between Alice and Bob.
+ * Assuming Alice and Bob know each other's authentic public key, exchange signed messages
+ * using ECDSA. Complete ten request-reply rounds: Alice sends a signed message and Bob
+ * sends a signed reply in each round. Each recipient verifies the signature and rejects
+ * invalid messages. Signatures provide integrity and evidence of the signer, not secrecy.
  */
 public class A2AgentCommunicationSignature {
     public static void main(String[] args) {
@@ -18,7 +20,7 @@ public class A2AgentCommunicationSignature {
             public void task() throws Exception {
                 // create a message, sign it,
                 // and send the message, signature pair to bob
-                // receive the message signarure pair, verify the signature
+                // receive the message-signature pair, verify the signature
                 // repeat 10 times
             }
         });
